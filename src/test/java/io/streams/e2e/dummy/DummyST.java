@@ -18,6 +18,7 @@ import io.streams.operators.manifests.ApicurioRegistryManifestInstaller;
 import io.streams.operators.manifests.DebeziumManifestInstaller;
 import io.streams.operators.manifests.FlinkManifestInstaller;
 import io.streams.operators.manifests.StrimziManifestInstaller;
+import io.streams.operators.olm.bundle.StrimziOlmBundleInstaller;
 import io.streams.operators.olm.catalog.StrimziOlmCatalogInstaller;
 import io.strimzi.api.kafka.model.kafka.KafkaResources;
 import io.strimzi.api.kafka.model.nodepool.ProcessRoles;
@@ -90,6 +91,17 @@ public class DummyST extends Abstract {
         CompletableFuture.allOf(
             StrimziOlmCatalogInstaller.install("strimzi-kafka-operator", "strimzi-olm",
                 "strimzi-cluster-operator.v0.42.0", "stable", "operatorhubio-catalog", "olm")
+        ).join();
+        assertTrue(KubeResourceManager.getKubeClient().getClient().apps()
+            .deployments().inNamespace("strimzi-olm")
+            .withName("strimzi-cluster-operator-v0.42.0").isReady());
+    }
+
+    @Test
+    void installStrimziByOlmBundleTest() {
+        CompletableFuture.allOf(
+            StrimziOlmBundleInstaller.install("strimzi-kafka-operator", "strimzi-olm",
+                "quay.io/operatorhubio/strimzi-kafka-operator:v0.42.0--20240710T183231")
         ).join();
         assertTrue(KubeResourceManager.getKubeClient().getClient().apps()
             .deployments().inNamespace("strimzi-olm")
